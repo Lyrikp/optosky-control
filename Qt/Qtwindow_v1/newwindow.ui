@@ -22,6 +22,10 @@
   <property name="windowTitle">
    <string>数据处理设置</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../../svgsource/tools-fill.svg</normaloff>../../svgsource/tools-fill.svg</iconset>
+  </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="4" column="3">
     <widget class="QPushButton" name="buttonOutputData">

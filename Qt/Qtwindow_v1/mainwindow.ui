@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>796</width>
-    <height>447</height>
+    <width>815</width>
+    <height>461</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,7 +18,7 @@
   </property>
   <property name="font">
    <font>
-    <family>微软雅黑</family>
+    <family>HarmonyOS Sans SC</family>
     <pointsize>9</pointsize>
     <bold>true</bold>
    </font>
@@ -26,13 +26,42 @@
   <property name="windowTitle">
    <string>光谱仪控制_V0.0.5</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../../svgsource/bar-chart-grouped-line.svg</normaloff>../../svgsource/bar-chart-grouped-line.svg</iconset>
+  </property>
   <property name="autoFillBackground">
    <bool>false</bool>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="8">
+     <widget class="QPushButton" name="buttonDataProcess">
+      <property name="text">
+       <string>数据处理</string>
+      </property>
+      <property name="icon">
+       <iconset>
+        <normaloff>../../svgsource/tools-fill.svg</normaloff>../../svgsource/tools-fill.svg</iconset>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="0" colspan="2">
+     <widget class="QLineEdit" name="setAverage"/>
+    </item>
     <item row="0" column="0">
      <widget class="QPushButton" name="buttonLink">
+      <property name="font">
+       <font>
+        <family>微软雅黑</family>
+        <pointsize>9</pointsize>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(23, 195, 123);
+</string>
+      </property>
       <property name="text">
        <string>连接设备</string>
       </property>
@@ -45,71 +74,14 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="6">
-     <widget class="QPushButton" name="buttonZoomOut">
+    <item row="2" column="1">
+     <widget class="QPushButton" name="buttonDataOut">
       <property name="text">
-       <string>缩小</string>
+       <string>导出数据</string>
       </property>
       <property name="icon">
        <iconset>
-        <normaloff>../../svgsource/zoom-out-line.svg</normaloff>../../svgsource/zoom-out-line.svg</iconset>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="2">
-     <widget class="QPushButton" name="buttonSpectrum">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>测量</string>
-      </property>
-      <property name="icon">
-       <iconset>
-        <normaloff>../../svgsource/login-circle-fill.svg</normaloff>../../svgsource/login-circle-fill.svg</iconset>
-      </property>
-      <property name="autoDefault">
-       <bool>false</bool>
-      </property>
-      <property name="default">
-       <bool>false</bool>
-      </property>
-      <property name="flat">
-       <bool>false</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QPushButton" name="buttonOut">
-      <property name="text">
-       <string>断开连接</string>
-      </property>
-      <property name="icon">
-       <iconset>
-        <normaloff>../../svgsource/stop-line.svg</normaloff>../../svgsource/stop-line.svg</iconset>
-      </property>
-      <property name="flat">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="0">
-     <widget class="QPushButton" name="pushButton_5">
-      <property name="text">
-       <string>采样时间</string>
-      </property>
-      <property name="icon">
-       <iconset>
-        <normaloff>../../svgsource/timer-line.svg</normaloff>../../svgsource/timer-line.svg</iconset>
-      </property>
-      <property name="checkable">
-       <bool>false</bool>
-      </property>
-      <property name="autoDefault">
-       <bool>true</bool>
-      </property>
-      <property name="default">
-       <bool>true</bool>
+        <normaloff>../../svgsource/file-3-line.svg</normaloff>../../svgsource/file-3-line.svg</iconset>
       </property>
       <property name="flat">
        <bool>true</bool>
@@ -136,20 +108,10 @@
       </property>
      </widget>
     </item>
-    <item row="12" column="0" colspan="2">
-     <widget class="QTextBrowser" name="logShow">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="readOnly">
-       <bool>true</bool>
-      </property>
-     </widget>
+    <item row="4" column="0" colspan="2">
+     <widget class="QLineEdit" name="setTime"/>
     </item>
-    <item row="2" column="2" rowspan="11" colspan="7">
-     <widget class="QChartView" name="chartView"/>
-    </item>
-    <item row="2" column="0">
+    <item row="1" column="0">
      <widget class="QPushButton" name="buttonVice">
       <property name="text">
        <string>连接信息</string>
@@ -163,21 +125,119 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="1">
-     <widget class="QPushButton" name="buttonInfo">
+    <item row="3" column="0">
+     <widget class="QPushButton" name="pushButton_5">
       <property name="text">
-       <string>设备信息</string>
+       <string>采样时间</string>
       </property>
       <property name="icon">
        <iconset>
-        <normaloff>../../svgsource/information-line.svg</normaloff>../../svgsource/information-line.svg</iconset>
+        <normaloff>../../svgsource/timer-line.svg</normaloff>../../svgsource/timer-line.svg</iconset>
+      </property>
+      <property name="checkable">
+       <bool>false</bool>
+      </property>
+      <property name="autoDefault">
+       <bool>true</bool>
+      </property>
+      <property name="default">
+       <bool>true</bool>
       </property>
       <property name="flat">
        <bool>true</bool>
       </property>
      </widget>
     </item>
-    <item row="11" column="0">
+    <item row="0" column="1">
+     <widget class="QPushButton" name="buttonOut">
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(255, 99, 102);</string>
+      </property>
+      <property name="text">
+       <string>断开连接</string>
+      </property>
+      <property name="icon">
+       <iconset>
+        <normaloff>../../svgsource/stop-line.svg</normaloff>../../svgsource/stop-line.svg</iconset>
+      </property>
+      <property name="flat">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QPushButton" name="buttonSystemCheck">
+      <property name="text">
+       <string>系统校准</string>
+      </property>
+      <property name="icon">
+       <iconset>
+        <normaloff>../../svgsource/settings-6-line.svg</normaloff>../../svgsource/settings-6-line.svg</iconset>
+      </property>
+      <property name="flat">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <widget class="QPushButton" name="buttonSpectrum">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>测量</string>
+      </property>
+      <property name="icon">
+       <iconset>
+        <normaloff>../../svgsource/login-circle-fill.svg</normaloff>../../svgsource/login-circle-fill.svg</iconset>
+      </property>
+      <property name="autoDefault">
+       <bool>false</bool>
+      </property>
+      <property name="default">
+       <bool>false</bool>
+      </property>
+      <property name="flat">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="9">
+     <widget class="QPushButton" name="butttonReset">
+      <property name="text">
+       <string>复位</string>
+      </property>
+      <property name="icon">
+       <iconset>
+        <normaloff>../../svgsource/find-replace-line.svg</normaloff>../../svgsource/find-replace-line.svg</iconset>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="2" rowspan="7" colspan="10">
+     <widget class="QCustomPlot" name="chartPlot" native="true">
+      <property name="font">
+       <font>
+        <family>HarmonyOS Sans SC</family>
+        <pointsize>9</pointsize>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="autoFillBackground">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="0" colspan="2">
+     <widget class="QTextBrowser" name="logShow">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="0">
      <widget class="QPushButton" name="buttonCleanlog">
       <property name="autoFillBackground">
        <bool>false</bool>
@@ -203,49 +263,21 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="0">
-     <widget class="QPushButton" name="buttonSystemCheck">
+    <item row="1" column="1">
+     <widget class="QPushButton" name="buttonInfo">
       <property name="text">
-       <string>系统校准</string>
+       <string>设备信息</string>
       </property>
       <property name="icon">
        <iconset>
-        <normaloff>../../svgsource/settings-6-line.svg</normaloff>../../svgsource/settings-6-line.svg</iconset>
+        <normaloff>../../svgsource/information-line.svg</normaloff>../../svgsource/information-line.svg</iconset>
       </property>
       <property name="flat">
        <bool>true</bool>
       </property>
      </widget>
     </item>
-    <item row="0" column="7">
-     <widget class="QPushButton" name="butttonReset">
-      <property name="text">
-       <string>复位</string>
-      </property>
-      <property name="icon">
-       <iconset>
-        <normaloff>../../svgsource/find-replace-line.svg</normaloff>../../svgsource/find-replace-line.svg</iconset>
-      </property>
-     </widget>
-    </item>
-    <item row="9" column="0" colspan="2">
-     <widget class="QLineEdit" name="setAverage"/>
-    </item>
-    <item row="0" column="5">
-     <widget class="QPushButton" name="buttonZoomIn">
-      <property name="text">
-       <string>放大</string>
-      </property>
-      <property name="icon">
-       <iconset>
-        <normaloff>../../svgsource/zoom-in-line.svg</normaloff>../../svgsource/zoom-in-line.svg</iconset>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="0" colspan="2">
-     <widget class="QLineEdit" name="setTime"/>
-    </item>
-    <item row="0" column="8">
+    <item row="0" column="11">
      <widget class="QPushButton" name="buttonClean">
       <property name="text">
        <string>光谱测量</string>
@@ -268,7 +300,7 @@
       </property>
      </widget>
     </item>
-    <item row="7" column="0" rowspan="2">
+    <item row="5" column="0">
      <widget class="QPushButton" name="pushButton_6">
       <property name="text">
        <string>采集次数</string>
@@ -291,24 +323,21 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="1">
-     <widget class="QPushButton" name="buttonDataOut">
+    <item row="0" column="10">
+     <widget class="QPushButton" name="buttonSaveGraphic">
       <property name="text">
-       <string>导出数据</string>
+       <string>保存图像</string>
       </property>
       <property name="icon">
        <iconset>
-        <normaloff>../../svgsource/file-3-line.svg</normaloff>../../svgsource/file-3-line.svg</iconset>
-      </property>
-      <property name="flat">
-       <bool>true</bool>
+        <normaloff>../../svgsource/image-add-fill.svg</normaloff>../../svgsource/image-add-fill.svg</iconset>
       </property>
      </widget>
     </item>
     <item row="0" column="4">
      <widget class="QPushButton" name="buttonDrawGraph">
       <property name="text">
-       <string>绘图</string>
+       <string>重绘图</string>
       </property>
       <property name="icon">
        <iconset>
@@ -325,6 +354,29 @@
       </property>
      </widget>
     </item>
+    <item row="1" column="2" colspan="10">
+     <widget class="QLabel" name="labelTitle">
+      <property name="minimumSize">
+       <size>
+        <width>84</width>
+        <height>25</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <family>HarmonyOS Sans SC</family>
+        <pointsize>16</pointsize>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>光谱数据</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -333,8 +385,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>796</width>
-     <height>21</height>
+     <width>815</width>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuOPTOSKY_ATP5020P">
@@ -386,9 +438,10 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QChartView</class>
-   <extends>QGraphicsView</extends>
-   <header location="global">qchartview.h</header>
+   <class>QCustomPlot</class>
+   <extends>QWidget</extends>
+   <header location="global">qcustomplot.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

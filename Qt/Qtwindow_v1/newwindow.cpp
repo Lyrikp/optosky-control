@@ -1,4 +1,4 @@
-#include "newwindow.h"
+﻿#include "newwindow.h"
 #include "ui_newwindow.h"
 #include "mainwindow.h"
 
@@ -8,6 +8,8 @@
 #include <windows.h>
 #include <iostream>
 #include <fstream>
+
+#pragma execution_character_set("utf-8")
 
 bool newWindow::deductflag;
 bool newWindow::nolinear;
@@ -85,7 +87,7 @@ void newWindow::on_buttonCancel_clicked()
     close();
 }
 
-
+// 导出处理后数据，不保存参数
 void newWindow::on_buttonOutputData_clicked()
 {
     std::ofstream origindata;
@@ -95,7 +97,7 @@ void newWindow::on_buttonOutputData_clicked()
     intensity = dataProcess(MainWindow::data.array, newWindow::smoothLevel, newWindow::deductflag, newWindow::nolinear, newWindow::waveshape);
 
     QList<QPointF> newPoints;
-    origindata.open("data_origin.txt");
+    origindata.open("Data_Output.txt");
     for(int i = 0; i<2000 ; i++)
     {
         QPointF point;
@@ -107,5 +109,6 @@ void newWindow::on_buttonOutputData_clicked()
         newPoints.append(point);
     }
     origindata.close();
+
 }
 

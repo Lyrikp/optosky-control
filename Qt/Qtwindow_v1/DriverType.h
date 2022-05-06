@@ -1,4 +1,4 @@
-#ifndef _TYPE_H_
+﻿#ifndef _TYPE_H_
 #define _TYPE_H_
 
 #define MAX_LINEAR_FACTOR_NUM 100
@@ -61,7 +61,7 @@ typedef struct
 
 typedef struct
 {
-	int *array;
+    int *array;
 	int valid_flag;
 }Spectrumsp;
 

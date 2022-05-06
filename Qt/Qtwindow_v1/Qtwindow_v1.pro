@@ -2,6 +2,8 @@ QT       += core gui
 QT       += charts
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
+
 
 CONFIG += c++17
 
@@ -12,17 +14,22 @@ CONFIG += c++17
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    newwindow.cpp
+    newwindow.cpp \
+    newwindow2.cpp \
+    qcustomplot.cpp
 
 HEADERS += \
     DriverType.h \
     Driver_app.h \
     mainwindow.h \
-    newwindow.h
+    newwindow.h \
+    newwindow2.h \
+    qcustomplot.h
 
 FORMS += \
     mainwindow.ui \
-    newwindow.ui
+    newwindow.ui \
+    newwindow2.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

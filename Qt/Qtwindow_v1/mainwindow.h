@@ -1,6 +1,7 @@
-#ifndef MAINWINDOW_H
+﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "qcustomplot.h"
 #include <QMainWindow>
 #include <QLabel>
 #include <QPushButton>
@@ -13,6 +14,7 @@ QT_CHARTS_USE_NAMESPACE
 #include <QValueAxis>
 #include <DriverType.h>
 #include <Driver_app.h>
+#include <QMouseEvent>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -26,6 +28,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+
     static int time_global;
     static int average_global;
 
@@ -36,6 +39,9 @@ public:
 
 public slots:
     void enableButton(void);        // 使能槽函数
+
+    void onMouseWheel(void);        // 鼠标滚轮事件
+
     void on_buttonLink_clicked();
 
     void on_buttonOut_clicked();
@@ -50,10 +56,9 @@ public slots:
 
     void on_buttonSpectrum_clicked();
 
-private slots:
-    void on_buttonZoomIn_clicked();
+    // void mouseMove1(QMouseEvent *e);
 
-    void on_buttonZoomOut_clicked();
+private slots:
 
     void on_butttonReset_clicked();
 
@@ -79,6 +84,11 @@ private slots:
 
     void on_buttonSystemCheck_clicked();
 
+    void on_buttonDataProcess_clicked();
+
+
+    bool on_buttonSaveGraphic_clicked();
+
 private:
     // 通过 ui-> 访问界面相关代码
     Ui::MainWindow *ui;
@@ -87,6 +97,11 @@ private:
 
     QLineSeries *curSeries;
     QValueAxis *curAxis;
+
+   /* 游标相关
+    QCPItemTracer *tracer;
+    QCPItemText *tracerLabel;
+    */
 
 
 

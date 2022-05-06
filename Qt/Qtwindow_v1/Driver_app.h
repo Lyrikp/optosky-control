@@ -1,4 +1,4 @@
-#ifndef __DRIVER_FUNC_H_
+﻿#ifndef __DRIVER_FUNC_H_
 #define __DRIVER_FUNC_H_
 
 #include "DriverType.h"
@@ -91,7 +91,7 @@ EXPORTED bool       STDCALL setCCDTecTEMPBySerial(const char* serial, int num);
 
 EXPORTED int        STDCALL getUsedPixelStart(); // ATP5100 get pixel start
 EXPORTED int        STDCALL getUsedPixelEnd();   // ATP5100 get pixel end
-EXPORTED float*		STDCALL dataProcess(int original_data[], int smoothLevel, bool isDeductDark, bool isNonlinearCorrect, bool isShapeCalibration);
+EXPORTED float*		STDCALL dataProcess(int original_data[], int smoothLevel, bool isDeductDark, bool isNonlinearCorrect, bool isShapeCalibration); // 原始数据改为浮点数
 
 EXPORTED bool       STDCALL getExtTrigSpectrumBySerial(const char* serial, int integrationTime); // start external trigger mode
 EXPORTED void       STDCALL stopExtTrigBySerial(const char* serial); // stop external trigger mode
