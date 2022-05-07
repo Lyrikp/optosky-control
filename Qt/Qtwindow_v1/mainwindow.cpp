@@ -22,11 +22,12 @@
 
 
 
-int MainWindow::time_global;
-int MainWindow::average_global;
+int MainWindow::time_global = 10;
+int MainWindow::average_global = 1;
 int MainWindow::dataflag = 0;
 Spectrumsp MainWindow::data;
 float* MainWindow::wave;
+
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -99,6 +100,7 @@ void MainWindow::mouseMove1(QMouseEvent *e)
 // 开始连接
 void MainWindow::on_buttonLink_clicked()
 {
+    // 开机 注意：关机前不能开机
     bool flag_0;
     flag_0 = openSpectraMeter();
     QString log = "Link successful.";
@@ -111,10 +113,11 @@ void MainWindow::on_buttonLink_clicked()
     ui->chartPlot->clearFocus();
     ui->chartPlot->clearMask();
     customPlot->addGraph();
-    ui->chartPlot->setBackground(QPixmap("./light.jpg"));
+    ui->chartPlot->setBackground(QPixmap("./light.jpg"));   // 重设背景图片，进入工作模式
     ui->chartPlot->setBackgroundScaledMode(Qt::IgnoreAspectRatio);
     ui->chartPlot->replot();
 
+    // 初始化设备
     if (flag_0==true)
     { 
         ui->logShow->clearHistory();
@@ -126,20 +129,22 @@ void MainWindow::on_buttonLink_clicked()
         if (flag_1 == INIT_SUCCESS)
             {
                 ui->logShow->append(TEXT_COLOR_GREEN("Done."));
-                ui->logShow->append(u8"继续设定，未设定将按上次设定数据处理");
+                ui->logShow->append(u8"请继续设定测量光谱");
                 ui->logShow->append(u8"设定前请先检查设备信息");
                 ui->logShow->append(" ");
             }
             else
             {
-                log = "Init Failed";
+                log = u8"初始化出现问题";
                 ui->logShow->append(TEXT_COLOR_RED("FATAL ") + log);
+                ui->logShow->append(" ");
             }
     }
     else
     {
-        log = "No device linked.";
+        log = u8"没有设备在线";
         ui->logShow->append(TEXT_COLOR_RED("FATAL ") + log);
+        ui->logShow->append(" ");
     }
 
 }
@@ -147,23 +152,30 @@ void MainWindow::on_buttonLink_clicked()
 // 断开连接
 void MainWindow::on_buttonOut_clicked()
 {
-    closeSpectraMeter();// 关闭设备
+    // 关闭设备
+    closeSpectraMeter();
 
-    QCustomPlot *customPlot = ui->chartPlot; // 初始化绘图区
+    // 初始化绘图区
+    QCustomPlot *customPlot = ui->chartPlot;
     ui->chartPlot->clearGraphs();
     ui->chartPlot->clearItems();
     ui->chartPlot->clearPlottables();
     ui->chartPlot->clearFocus();
     ui->chartPlot->clearMask();
     customPlot->addGraph();
-    ui->chartPlot->setBackground(QPixmap("./catnap.png"));
+    ui->chartPlot->setBackground(QPixmap("./catnap.png")); // 猫咪休息
     ui->chartPlot->setBackgroundScaledMode(Qt::KeepAspectRatio);
     ui->chartPlot->replot();
 
-    ui->logShow->clear(); // 清空日志
+    // 清空日志区域
+    ui->logShow->clear();
     Sleep(500);
     ui->logShow->append("Have a nice day.");
 
+    // 标志位重置
+    MainWindow::dataflag = 0;   // 无数据
+    newWindow::changeflag = 0;  // 无处理后数据
+    newwindow2::Caready = 0;    // 无标定数据
 }
 
 
@@ -174,6 +186,7 @@ void MainWindow::on_buttonVice_clicked()
     findSpectraMeters(ATP5020P);
     QString num = QString::number(ATP5020P.length, 10);
     ui->logShow->append(num + u8" 个设备已上线");
+    ui->logShow->append(u8"在设置参数前请参考设备信息");
     ui->logShow->append(" ");
 }
 
@@ -215,7 +228,7 @@ void MainWindow::on_setAverage_editingFinished()
     MainWindow::average_global = average;
 }
 
-// 一般绘图
+// 基本绘图
 void MainWindow::on_buttonSpectrum_clicked()
 {
     // 图表初始化
@@ -256,7 +269,7 @@ void MainWindow::on_buttonSpectrum_clicked()
     ui->chartPlot->xAxis->setTickLabelColor(Qt::black);
     ui->chartPlot->yAxis->setTickLabelColor(Qt::black);
 
-    ui->chartPlot->graph(0)->rescaleAxes();
+    ui->chartPlot->graph(0)->rescaleAxes(); // 自适应坐标轴范围
 
     ui->chartPlot->legend->setVisible(true); // 显示图例
     customPlot->legend->setBrush(QColor(255, 255, 255, 150)); // 图例透明
@@ -264,12 +277,10 @@ void MainWindow::on_buttonSpectrum_clicked()
     customPlot->legend->setBorderPen(Qt::NoPen);// 隐藏边框
     customPlot->graph(0)->setName("原始数据");//设置名称
 
-    ui->chartPlot->graph(0)->rescaleAxes(); // 自适应宽度
-
     ui->chartPlot->setInteraction(QCP::iRangeDrag,true);// 拖拽曲线
     ui->chartPlot->setInteraction(QCP::iRangeZoom,true);// 鼠标滚轮缩放
-    ui->chartPlot->setCursor(QCursor(Qt::PointingHandCursor));
-    ui->chartPlot->setInteraction( QCP::iSelectAxes,true);
+    ui->chartPlot->setCursor(QCursor(Qt::PointingHandCursor));// 鼠标更改为手型
+    ui->chartPlot->setInteraction( QCP::iSelectAxes,true);// 坐标轴可选
     onMouseWheel();
 
     /* 游标
@@ -312,39 +323,55 @@ void MainWindow::on_buttonSpectrum_clicked()
             flag = getSpectrumDataReadyFlag();
             if (flag == SPECTRUMDATA_READY)
             {
-                log = "Get Spectrum.";
+                log = u8"获取到光谱数据";
                 ui->logShow->append("---------------------");
 
                 ui->logShow->append(TEXT_COLOR_GREEN("Done ") + log);
-                ui->logShow->append("Processing...");
-                ui->logShow->append("---------------------");
+                ui->logShow->append("绘图中->");
+                ui->logShow->append(" ");
             }
             else
             {
-                log = "Data isn't ready.";
+                log = u8"数据并未准备完成";
                 ui->logShow->append("---------------------");
                 ui->logShow->append(TEXT_COLOR_RED("Failed ") + log);
-                ui->logShow->append("---------------------");
+                ui->logShow->append(" ");
             }
         }
     else
     {
-        log = "Haven't got Spectrum";
+        log = u8"未获取到光谱";
+        ui->logShow->append("---------------------");
         ui->logShow->append(TEXT_COLOR_RED("Failed ") + log);
-        ui->logShow->append("Please check light source.");
+        ui->logShow->append("请检查连接或光源");
+        ui->logShow->append(" ");
     }
 
     // 获取横纵坐标数据
     MainWindow::wave = getWavelength();
     MainWindow::data = ReadSpectrum();
-    QVector<double> x(2001), y(2001); //初始化向量x和y
-        for (int i=0; i<2001; ++i)
+    QVector<double> x(2000), y(2000); //初始化向量x和y
+    if (newwindow2::Caready == 1)
+    {
+        for (int i=0; i<1860; ++i)
         {
-          x[i] = *(MainWindow::wave + i);
-          y[i] = *(MainWindow::data.array + i);
+            x[i] = *(MainWindow::wave + i);
+            y[i] = *(MainWindow::data.array + i);
+            y[i] = (y[i] - newwindow2::d[i]) * newwindow2::ca[i] / MainWindow::time_global;
         }
-    ui->chartPlot->graph(0)->setData(x, y);
-    ui->chartPlot->graph(0)->setName("设定光谱数据");// 设置图例名称
+        ui->chartPlot->graph(0)->setData(x, y);
+        ui->chartPlot->graph(0)->setName(u8"光谱数据/标定后");// 设置图例名称
+    }
+    else
+    {
+        for (int i=0; i<1860; ++i)
+        {
+            x[i] = *(MainWindow::wave + i);
+            y[i] = *(MainWindow::data.array + i);
+        }
+        ui->chartPlot->graph(0)->setData(x, y);
+        ui->chartPlot->graph(0)->setName(u8"光谱数据");// 设置图例名称
+    }
 
     // 绘图
     ui->chartPlot->replot();
@@ -520,13 +547,27 @@ void MainWindow::on_buttonDarkSp_clicked()
     MainWindow::wave = getWavelength();
     MainWindow::data = ReadSpectrum();
     QVector<double> x(2001), y(2001); //初始化向量x和y
-        for (int i=0; i<2001; ++i)
+    if (newwindow2::Caready == 1)
+    {
+        for (int i=0; i<1860; ++i)
         {
-          x[i] = *(MainWindow::wave + i);
-          y[i] = *(MainWindow::data.array + i);
+            x[i] = *(MainWindow::wave + i);
+            y[i] = *(MainWindow::data.array + i);
+            y[i] = (y[i] - newwindow2::d[i]) * newwindow2::ca[i] / MainWindow::time_global;
         }
-    ui->chartPlot->graph(0)->setData(x, y);
-    ui->chartPlot->graph(0)->setName("暗环境模式光谱");// 设置图例名称
+        ui->chartPlot->graph(0)->setData(x, y);
+        ui->chartPlot->graph(0)->setName(u8"安环境模式光谱/标定后");// 设置图例名称
+    }
+    else
+    {
+        for (int i=0; i<1860; ++i)
+        {
+            x[i] = *(MainWindow::wave + i);
+            y[i] = *(MainWindow::data.array + i);
+        }
+        ui->chartPlot->graph(0)->setData(x, y);
+        ui->chartPlot->graph(0)->setName(u8"暗环境模式光谱");// 设置图例名称
+    }
 
     // 绘图
     ui->chartPlot->replot();
@@ -1157,7 +1198,7 @@ void MainWindow::on_buttonDrawGraph_clicked()
         {
             x[i] = *(MainWindow::wave + i);
             y[i] = *(intensity + i);
-            y[i] = (y[i] - newwindow2::D) * newwindow2::Ca[i] / MainWindow::time_global;
+            y[i] = (y[i] - newwindow2::d[i]) * newwindow2::ca[i] / MainWindow::time_global;
         }
         ui->chartPlot->graph(0)->setData(x, y);
         ui->chartPlot->graph(0)->setName(u8"标定/处理后光谱数据");// 设置图例名称
@@ -1279,7 +1320,11 @@ void MainWindow::on_buttonSystemCheck_clicked()
         ui->logShow->clear();
         ui->logShow->append(TEXT_COLOR_GREEN(u8"初始化校准处理"));
         initialize();
-        Sleep(500);
+        ui->logShow->append(" ");
+        ui->logShow->append(u8"生成Ca前请先测量无光情况下的背景光谱 D0");
+        ui->logShow->append(u8"若未测量 D0 将会使用预定常数进行计算");
+        Sleep(1000);
+        QMessageBox::information(this, u8"预定数据", u8"生成Ca前请先测量无光情况下的背景光谱 D0\n若未测量 D0 将会使用预定常数进行计算");
         newwindow2 *configWindow = new newwindow2;
         configWindow->show();
     }

@@ -37,3 +37,13 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
+    Driver.dll \
+    Driver.lib \
+    HP2000_wrapper.dll \
+    catnap.ico \
+    catnap.png \
+    dark.png \
+    libusb0.dll \
+    light.jpg
+
+RC_ICONS = catnap.ico

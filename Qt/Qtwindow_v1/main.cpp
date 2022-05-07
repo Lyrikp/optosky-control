@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
 
 #include <QApplication>
 #include <QLabel>
@@ -11,6 +11,7 @@
 #include <QLineEdit>    // 行编辑
 #include <QHBoxLayout>  // 水平布局器
 #include <QDoubleValidator> // 验证器
+#pragma execution_character_set("utf-8")
 
 int main(int argc, char *argv[])
 {
