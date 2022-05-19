@@ -1,19 +1,24 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QValueAxis>
-#include <QChartView>
-#include <QTextCodec>
 #include "newwindow.h"
 #include "newwindow2.h"
 #include "qcustomplot.h"
-#include <QMouseEvent>
+#include "peakset.h"
 
 #include "DriverType.h"
 #include "Driver_app.h"
+#include "findpeaks.h"
+
+#include <QValueAxis>
+#include <QChartView>
+#include <QTextCodec>
+#include <QMouseEvent>
 
 #include <windows.h>
 #include <iostream>
 #include<fstream>
+#include <math.h>
+#include <algorithm>
 #pragma execution_character_set("utf-8")
 
 #define TEXT_COLOR_RED(STRING) "<font color=red>" STRING "</font>" "<font color=black> </font>"
@@ -22,11 +27,13 @@
 
 
 
-int MainWindow::time_global = 10;
+int MainWindow::time_global = 100;
 int MainWindow::average_global = 1;
 int MainWindow::dataflag = 0;
 Spectrumsp MainWindow::data;
 float* MainWindow::wave;
+
+int link_flag = 0;
 
 
 
@@ -45,12 +52,19 @@ MainWindow::MainWindow(QWidget *parent)
             this, SLOT(enableButton()));
 
     connect(ui->chartPlot, &QCustomPlot::mouseWheel, this, &MainWindow::onMouseWheel);
+
+    // 标题和绘图区域休眠
     ui->labelTitle->setText(u8"休息中......");
     ui->chartPlot->setBackground(QPixmap("./catnap.png"));                  //设置背景为透明色
     ui->chartPlot->setBackgroundScaledMode(Qt::KeepAspectRatio);
 
-    // 游标
-    // connect(ui->chartPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(mouseMove1(QMouseEvent*)));
+    // 实时光谱的定时器连接
+    _timer = new QTimer(this);
+    connect(_timer, SIGNAL(timeout()), this, SLOT(AgainSpectrum()));
+
+    //信号-槽连接语句
+
+    //connect(ui->chartPlot, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(mouseMove1(QMouseEvent*)));
 
 }
 
@@ -67,6 +81,7 @@ void MainWindow::enableButton(void)
     ui->setAverage->text().toDouble(&bY0k);
     ui->buttonSpectrum->setEnabled(bX0k && bY0k);
     ui->buttonDarkSp->setEnabled(bX0k && bY0k);
+    ui->buttonAgain->setEnabled(bX0k && bY0k);
 }
 
 // 随意放大缩小函数
@@ -80,7 +95,7 @@ void MainWindow::onMouseWheel()
         ui->chartPlot->axisRect()->setRangeZoom(Qt::Horizontal|Qt::Vertical);
 }
 
-/* 游标 过于浪费资源，容易闪退
+/* 游标 会导致内存溢出
 void MainWindow::mouseMove1(QMouseEvent *e)
 {
     //获得鼠标位置处对应的横坐标数据x
@@ -88,63 +103,75 @@ void MainWindow::mouseMove1(QMouseEvent *e)
     double y = ui->chartPlot->yAxis->pixelToCoord(e->pos().y());
     double xValue, yValue;
 
-    xValue = x;
-    yValue = y;
+    xValue = x;//xValue就是游标的横坐标
+    yValue = y;//yValue就是游标的纵坐标，这里直接根据产生数据的函数获得
 
     tracer->position->setCoords(xValue, yValue);//设置游标位置
-    tracerLabel->setText(QString(u8"波长 = %1 \n光强 = %2").arg(xValue).arg(yValue));//设置游标说明内容
+    tracerLabel->setText(QString("x = %1, y = %2").arg(xValue).arg(yValue));//设置游标说明内容
     ui->chartPlot->replot();//绘制器一定要重绘，否则看不到游标位置更新情况
 }
 */
 
+
+
 // 开始连接
 void MainWindow::on_buttonLink_clicked()
 {
-    // 开机 注意：关机前不能开机
-    bool flag_0;
-    flag_0 = openSpectraMeter();
-    QString log = "Link successful.";
-    ui->labelTitle->setText(u8"设备已上线");
-
-    QCustomPlot *customPlot = ui->chartPlot;
-    ui->chartPlot->clearGraphs();   // 清除上一次数据
-    ui->chartPlot->clearItems();
-    ui->chartPlot->clearPlottables();
-    ui->chartPlot->clearFocus();
-    ui->chartPlot->clearMask();
-    customPlot->addGraph();
-    ui->chartPlot->setBackground(QPixmap("./light.jpg"));   // 重设背景图片，进入工作模式
-    ui->chartPlot->setBackgroundScaledMode(Qt::IgnoreAspectRatio);
-    ui->chartPlot->replot();
-
-    // 初始化设备
-    if (flag_0==true)
-    { 
-        ui->logShow->clearHistory();
-        ui->logShow->append(log);
-        ErrorFlag flag_1 = initialize();
-        Sleep(500);
-        log = "Initilaizing...";
-        ui->logShow->append(log);
-        if (flag_1 == INIT_SUCCESS)
-            {
-                ui->logShow->append(TEXT_COLOR_GREEN("Done."));
-                ui->logShow->append(u8"请继续设定测量光谱");
-                ui->logShow->append(u8"设定前请先检查设备信息");
-                ui->logShow->append(" ");
-            }
-            else
-            {
-                log = u8"初始化出现问题";
-                ui->logShow->append(TEXT_COLOR_RED("FATAL ") + log);
-                ui->logShow->append(" ");
-            }
+    if (link_flag == 1)
+    {
+        ui->logShow->append(u8"设备已上线");
     }
     else
     {
-        log = u8"没有设备在线";
-        ui->logShow->append(TEXT_COLOR_RED("FATAL ") + log);
-        ui->logShow->append(" ");
+        // 开机 注意：关机前不能开机
+        bool flag_0;
+        flag_0 = openSpectraMeter();
+        QString log = "Link successful.";
+
+
+        QCustomPlot *customPlot = ui->chartPlot;
+        ui->chartPlot->clearGraphs();   // 清除上一次数据
+        ui->chartPlot->clearItems();
+        ui->chartPlot->clearPlottables();
+        ui->chartPlot->clearFocus();
+        ui->chartPlot->clearMask();
+        customPlot->addGraph();
+        ui->chartPlot->setBackground(QPixmap("./light.jpg"));   // 重设背景图片，进入工作模式
+        ui->chartPlot->setBackgroundScaledMode(Qt::IgnoreAspectRatio);
+        ui->chartPlot->replot();
+
+        // 初始化设备
+        if (flag_0==true)
+        {
+            ui->labelTitle->setText(u8"设备已上线");
+            ui->logShow->clearHistory();
+            ui->logShow->append(log);
+            ErrorFlag flag_1 = initialize();
+            Sleep(500);
+            log = "Initilaizing...";
+            ui->logShow->append(log);
+            link_flag = 1;
+            if (flag_1 == INIT_SUCCESS)
+                {
+                    ui->logShow->append(TEXT_COLOR_GREEN("Done."));
+                    ui->logShow->append(u8"请继续设定测量光谱");
+                    ui->logShow->append(u8"设定前请先检查设备信息");
+                    ui->logShow->append(" ");
+                }
+                else
+                {
+                    log = u8"初始化出现问题";
+                    ui->logShow->append(TEXT_COLOR_RED("FATAL ") + log);
+                    ui->logShow->append(" ");
+                }
+        }
+        else
+        {
+            log = u8"没有设备在线";
+            ui->logShow->append(TEXT_COLOR_RED("FATAL ") + log);
+            ui->logShow->append(" ");
+        }
+
     }
 
 }
@@ -176,18 +203,27 @@ void MainWindow::on_buttonOut_clicked()
     MainWindow::dataflag = 0;   // 无数据
     newWindow::changeflag = 0;  // 无处理后数据
     newwindow2::Caready = 0;    // 无标定数据
+    link_flag = 0;              // 无连接
 }
 
 
 // 连接的信息
 void MainWindow::on_buttonVice_clicked()
 {
-    spectrum_device_info ATP5020P;
-    findSpectraMeters(ATP5020P);
-    QString num = QString::number(ATP5020P.length, 10);
-    ui->logShow->append(num + u8" 个设备已上线");
-    ui->logShow->append(u8"在设置参数前请参考设备信息");
-    ui->logShow->append(" ");
+    if(link_flag == 1)
+    {
+        spectrum_device_info ATP5020P;
+        findSpectraMeters(ATP5020P);
+        QString num = QString::number(ATP5020P.length, 10);
+        ui->logShow->append(num + u8" 个设备已上线");
+        ui->logShow->append(u8"在设置参数前请参考设备信息");
+        ui->logShow->append(" ");
+    }
+    else
+    {
+        ui->logShow->append(u8"当前无设备连接");
+    }
+
 }
 
 
@@ -195,37 +231,58 @@ void MainWindow::on_buttonVice_clicked()
 // 设备信息
 void MainWindow::on_buttonInfo_clicked()
 {
-    QString min_integraltime = QString::number(getIntegrationTimeMinimum(), 10);
-    QString max_integraltime = QString::number(getIntegrationTimeMaximum(), 10);
-    QString integraltime = QString::number(getActualIntegrationTime(), 10);
-    ui->logShow->append(u8"------设备信息-------");
-    ui->logShow->append(TEXT_COLOR_RED(u8"积分时间范围: ") +
-                min_integraltime + "~" + max_integraltime
-                );
-    ui->logShow->append("当前设定积分时间: " + integraltime + "ms");
+    if (link_flag == 1)
+    {
+        QString min_integraltime = QString::number(getIntegrationTimeMinimum(), 10);
+        QString max_integraltime = QString::number(getIntegrationTimeMaximum(), 10);
+        QString integraltime = QString::number(getActualIntegrationTime(), 10);
+        ui->logShow->append(u8"------设备信息-------");
+        ui->logShow->append(TEXT_COLOR_RED(u8"积分时间范围: ") +
+                    min_integraltime + "~" + max_integraltime
+                    );
+        ui->logShow->append(u8"当前设定积分时间: " + integraltime + u8"ms");
+    }
+    else
+    {
+        ui->logShow->append(u8"当前无设备连接");
+    }
 }
 
 
 // 设置积分时间
 void MainWindow::on_setTime_editingFinished()
 {
-    int settime = ui->setTime->text().toInt();
-    setIntegrationTime(settime);
-    QString time = QString::number(settime, 10);
-    ui->logShow->append("----设定积分时间----");
-    ui->logShow->append("积分时间: " + time + "ms");
-    MainWindow::time_global = settime;
+    if (link_flag == 1)
+    {
+        int settime = ui->setTime->text().toInt();
+        setIntegrationTime(settime);
+        QString time = QString::number(settime, 10);
+        ui->logShow->append("----设定积分时间----");
+        ui->logShow->append("积分时间: " + time + "ms");
+        MainWindow::time_global = settime;
+    }
+    else
+    {
+        QMessageBox::information(this,"fail","请先连接设备");
+    }
 }
 
 
 // 设置平均采样次数
 void MainWindow::on_setAverage_editingFinished()
 {
-    int average = ui->setAverage->text().toInt();
-    QString average1 = QString::number(average, 10);
-    ui->logShow->append("----设定平均采样次数----");
-    ui->logShow->append("设定平均采样次数: " + average1);
-    MainWindow::average_global = average;
+    if(link_flag == 1)
+    {
+        int average = ui->setAverage->text().toInt();
+        QString average1 = QString::number(average, 10);
+        ui->logShow->append("----设定平均采样次数----");
+        ui->logShow->append("设定平均采样次数: " + average1);
+        MainWindow::average_global = average;
+    }
+    else
+    {
+        QMessageBox::information(this,"fail","请先连接设备");
+    }
 }
 
 // 基本绘图
@@ -255,11 +312,11 @@ void MainWindow::on_buttonSpectrum_clicked()
     customPlot->plotLayout()->addElement(0, 0, H_title);
     */
     // 为坐标轴添加标签
-    ui->chartPlot->xAxis->setLabel(u8"波长/nm");
+    ui->chartPlot->xAxis->setLabel(u8"波长(nm)");
     ui->chartPlot->yAxis->setLabel(u8"强度(Counts)");
     // 设置坐标轴的范围及颜色
     ui->chartPlot->xAxis->setRange(300, 900);
-    ui->chartPlot->yAxis->setRange(0, 6000);
+    ui->chartPlot->yAxis->setRange(0,6000);
     ui->chartPlot->xAxis->setLabelColor(Qt::black);
     ui->chartPlot->yAxis->setLabelColor(Qt::black);
     ui->chartPlot->xAxis->setBasePen(QPen(Qt::black));
@@ -268,8 +325,6 @@ void MainWindow::on_buttonSpectrum_clicked()
     ui->chartPlot->yAxis->setTickPen(QPen(Qt::black));
     ui->chartPlot->xAxis->setTickLabelColor(Qt::black);
     ui->chartPlot->yAxis->setTickLabelColor(Qt::black);
-
-    ui->chartPlot->graph(0)->rescaleAxes(); // 自适应坐标轴范围
 
     ui->chartPlot->legend->setVisible(true); // 显示图例
     customPlot->legend->setBrush(QColor(255, 255, 255, 150)); // 图例透明
@@ -281,7 +336,6 @@ void MainWindow::on_buttonSpectrum_clicked()
     ui->chartPlot->setInteraction(QCP::iRangeZoom,true);// 鼠标滚轮缩放
     ui->chartPlot->setCursor(QCursor(Qt::PointingHandCursor));// 鼠标更改为手型
     ui->chartPlot->setInteraction( QCP::iSelectAxes,true);// 坐标轴可选
-    onMouseWheel();
 
     /* 游标
     // 生成游标
@@ -314,7 +368,7 @@ void MainWindow::on_buttonSpectrum_clicked()
             break;
         }
     }
-    Sleep(2000);    // wait 2 seconds
+    Sleep(1000);    // wait 1 seconds
 
     // 输出日志
     QString log;
@@ -359,8 +413,9 @@ void MainWindow::on_buttonSpectrum_clicked()
             y[i] = *(MainWindow::data.array + i);
             y[i] = (y[i] - newwindow2::d[i]) * newwindow2::ca[i] / MainWindow::time_global;
         }
+        ui->chartPlot->yAxis->setLabel(u8"功率(μW)");
         ui->chartPlot->graph(0)->setData(x, y);
-        ui->chartPlot->graph(0)->setName(u8"光谱数据/标定后");// 设置图例名称
+        ui->chartPlot->graph(0)->setName(u8"光谱功率数据/标定后");// 设置图例名称
     }
     else
     {
@@ -372,9 +427,9 @@ void MainWindow::on_buttonSpectrum_clicked()
         ui->chartPlot->graph(0)->setData(x, y);
         ui->chartPlot->graph(0)->setName(u8"光谱数据");// 设置图例名称
     }
-
     // 绘图
     ui->chartPlot->replot();
+    ui->chartPlot->graph(0)->rescaleAxes(); // 自适应坐标轴范围
     MainWindow::dataflag = 1; // 有数据，设定标志位为1
 
 /*  旧绘图插件
@@ -441,6 +496,9 @@ void MainWindow::on_buttonSpectrum_clicked()
 // 暗背景模式
 void MainWindow::on_buttonDarkSp_clicked()
 {
+
+    QMessageBox::information(this, u8"提示", u8"该操作为氙灯、光开关专用");
+
     // 图表初始化
     QCustomPlot *customPlot = ui->chartPlot;
     ui->chartPlot->clearGraphs();   // 清除上一次数据
@@ -465,8 +523,8 @@ void MainWindow::on_buttonDarkSp_clicked()
     customPlot->plotLayout()->addElement(0, 0, H_title);
     */
     // 为坐标轴添加标签
-    ui->chartPlot->xAxis->setLabel("波长/nm");
-    ui->chartPlot->yAxis->setLabel("强度Counts");
+    ui->chartPlot->xAxis->setLabel("波长(nm)");
+
     // 设置坐标轴样式 风格为 dark
     ui->chartPlot->xAxis->setRange(300, 900);
     ui->chartPlot->yAxis->setRange(0, 6000);
@@ -501,7 +559,7 @@ void MainWindow::on_buttonDarkSp_clicked()
     // 设备获取光谱数据
     setIntegrationTime(MainWindow::time_global);
     setAverage(MainWindow::average_global);
-    int flag = getSpectrum(MainWindow::time_global);
+    int flag = getDarkSpectrum(MainWindow::time_global); // 获取暗环境的光谱
     int count = 0;
     while (flag != 1 )   // 等待数据获取完成
     {
@@ -556,7 +614,8 @@ void MainWindow::on_buttonDarkSp_clicked()
             y[i] = (y[i] - newwindow2::d[i]) * newwindow2::ca[i] / MainWindow::time_global;
         }
         ui->chartPlot->graph(0)->setData(x, y);
-        ui->chartPlot->graph(0)->setName(u8"安环境模式光谱/标定后");// 设置图例名称
+        ui->chartPlot->yAxis->setLabel(u8"功率(μW)");
+        ui->chartPlot->graph(0)->setName(u8"暗环境模式光谱/标定后");// 设置图例名称
     }
     else
     {
@@ -566,11 +625,13 @@ void MainWindow::on_buttonDarkSp_clicked()
             y[i] = *(MainWindow::data.array + i);
         }
         ui->chartPlot->graph(0)->setData(x, y);
+        ui->chartPlot->yAxis->setLabel(u8"强度(Counts)");
         ui->chartPlot->graph(0)->setName(u8"暗环境模式光谱");// 设置图例名称
     }
 
     // 绘图
     ui->chartPlot->replot();
+    ui->chartPlot->graph(0)->rescaleAxes(); // 自适应坐标轴范围
     MainWindow::dataflag = 1; // 有数据，设定标志位为1
     /* 旧插件绘图
     // 图表初始化
@@ -677,19 +738,14 @@ void MainWindow::on_buttonDarkSp_clicked()
 // 光谱图表复位
 void MainWindow::on_butttonReset_clicked()
 {
-    // 设置坐标轴的范围，以看到所有数据
-    ui->chartPlot->xAxis->setRange(300, 900);
-    ui->chartPlot->legend->setVisible(true); // 显示图例
+    if (dataflag == 1)
+    {
+        // 设置坐标轴的范围，以看到所有数据
+        ui->chartPlot->xAxis->setRange(300, 900);
+        ui->chartPlot->legend->setVisible(true); // 显示图例
+        ui->chartPlot->graph(0)->rescaleAxes();
+    }
 
-    ui->chartPlot->graph(0)->rescaleAxes();
-
-    ui->chartPlot->setInteraction(QCP::iRangeDrag,true);// 拖拽曲线
-    ui->chartPlot->setInteraction(QCP::iRangeZoom,true);// 鼠标滚轮缩放
-    ui->chartPlot->setCursor(QCursor(Qt::PointingHandCursor));
-    ui->chartPlot->setInteraction( QCP::iSelectAxes,true);
-    onMouseWheel();
-    ui->chartPlot->xAxis->setLabel(u8"波长/nm");
-    ui->chartPlot->yAxis->setLabel(u8"强度Counts");
 }
 
 
@@ -717,8 +773,7 @@ void MainWindow::on_buttonClean_clicked()
     customPlot->plotLayout()->addElement(0, 0, H_title);
     */
     // 为坐标轴添加标签
-    ui->chartPlot->yAxis->setLabel("波长/nm");
-    ui->chartPlot->yAxis->setLabel("强度(Counts)");
+    ui->chartPlot->yAxis->setLabel("波长(nm)");
     ui->chartPlot->xAxis->setLabelColor(Qt::black);
     ui->chartPlot->yAxis->setLabelColor(Qt::black);
     ui->chartPlot->xAxis->setBasePen(QPen(Qt::black));
@@ -746,7 +801,7 @@ void MainWindow::on_buttonClean_clicked()
 
     // 输出日志
     QString log;
-    log = "Graphic area clear done.";
+    log = u8"绘图区域已清空";
     ui->logShow->append("---------------------");
     ui->logShow->append(TEXT_COLOR_GREEN("Clear ") + log);
 
@@ -804,6 +859,7 @@ void MainWindow::on_actionLink_device_triggered()
     bool flag_0;
     flag_0 = openSpectraMeter();
     QString log = "Link successful.";
+    link_flag = 1;
     if (flag_0==true)
     {
         ui->logShow->clearHistory();
@@ -834,12 +890,7 @@ void MainWindow::on_actionLink_device_triggered()
 // 菜单 断开连接
 void MainWindow::on_actionStop_Link_triggered()
 {
-    closeSpectraMeter();
-    ui->logShow->clear();
-    Sleep(500);
-    ui->logShow->append("Have a nice day.");
-    Sleep(3000);
-    ui->logShow->clear();
+    MainWindow::on_buttonOut_clicked();
 }
 
 // 菜单 关闭所有窗口
@@ -1107,126 +1158,137 @@ void MainWindow::on_buttonDataProcess_clicked()
 // 画图函数
 void MainWindow::on_buttonDrawGraph_clicked()
 {
-    if (newWindow::changeflag == 1)
+    if (dataflag == 1)
     {
-        ui->logShow->append("---------------------");
-        QString log = "数据处理成功，请重新绘图";
-        ui->logShow->append(TEXT_COLOR_GREEN("Done ") + log);
+        if (newWindow::changeflag == 1)
+        {
+            ui->logShow->append("---------------------");
+            QString log = "数据处理成功，重新绘图中->";
+            ui->logShow->append(TEXT_COLOR_GREEN("Done ") + log);
+        }
+        else
+        {
+            ui->logShow->append("---------------------");
+            QString log = "Nothing changed.";
+            ui->logShow->append(TEXT_COLOR_YELLOW("Warning ") + log);
+        }
+
+        // 图表初始化
+        QCustomPlot *customPlot = ui->chartPlot;
+        ui->chartPlot->clearGraphs();   // 清除上一次数据
+        ui->chartPlot->clearItems();
+        ui->chartPlot->clearPlottables();
+        ui->chartPlot->clearFocus();
+        ui->chartPlot->clearMask();
+        customPlot->addGraph();
+
+        QPen pen;
+        pen.setWidth(4);//曲线的粗细
+        pen.setColor(Qt::blue);
+        customPlot->graph(0)->setPen(pen); // 曲线的颜色
+        customPlot->graph(0)->setBrush(QBrush(QColor(23, 129, 181, 40))); // 曲线与X轴包围区的颜色
+        ui->chartPlot->setBackground(QPixmap("./light.jpg"));
+        ui->chartPlot->setBackgroundScaledMode(Qt::IgnoreAspectRatio);
+
+        // 标题初始化
+        ui->labelTitle->setText(u8"处理后光谱图像");
+        /* 旧初始化 会产生重复标题渲染问题
+        customPlot->plotLayout()->insertRow(0);
+        QCPTextElement *H_title = new QCPTextElement(customPlot, "光谱测量", QFont("HarmonyOS Sans SC", 12, QFont::Bold));
+        customPlot->plotLayout()->addElement(0, 0, H_title);
+        */
+        // 为坐标轴设定，风格为 light
+        ui->chartPlot->xAxis->setLabel(u8"波长(nm)");
+
+        ui->chartPlot->xAxis->setLabelColor(Qt::black);
+        ui->chartPlot->yAxis->setLabelColor(Qt::black);
+        ui->chartPlot->xAxis->setBasePen(QPen(Qt::black));
+        ui->chartPlot->yAxis->setBasePen(QPen(Qt::black));
+        ui->chartPlot->xAxis->setTickPen(QPen(Qt::black));
+        ui->chartPlot->yAxis->setTickPen(QPen(Qt::black));
+        ui->chartPlot->xAxis->setTickLabelColor(Qt::black);
+        ui->chartPlot->yAxis->setTickLabelColor(Qt::black);
+        // 设置坐标轴的范围，以看到所有数据
+        ui->chartPlot->xAxis->setRange(300, 900);
+        ui->chartPlot->yAxis->setRange(0, 6000);
+        ui->chartPlot->legend->setVisible(true); // 显示图例
+        customPlot->legend->setBrush(QColor(255, 255, 255, 150)); // 图例透明
+        ui->chartPlot->legend->setFont(QFont("HarmonyOS Sans SC"));
+        customPlot->legend->setBorderPen(Qt::NoPen);// 隐藏边框
+        customPlot->graph(0)->setName(u8"原始数据");//设置名称
+
+        ui->chartPlot->graph(0)->rescaleAxes();
+
+        ui->chartPlot->setInteraction(QCP::iRangeDrag,true);// 拖拽曲线
+        ui->chartPlot->setInteraction(QCP::iRangeZoom,true);// 鼠标滚轮缩放
+        ui->chartPlot->setCursor(QCursor(Qt::PointingHandCursor));
+        ui->chartPlot->setInteraction( QCP::iSelectAxes,true);
+        onMouseWheel();
+
+        // 设备获取光谱数据
+        setIntegrationTime(MainWindow::time_global);
+        setAverage(MainWindow::average_global);
+        int flag = getSpectrum(MainWindow::time_global);
+        int count = 0;
+        while (flag != 1 )   // 等待数据获取完成
+        {
+            count++;
+            Sleep(500);
+            if (count>=10)  // 等待大于5s后跳出报错
+            {
+                break;
+            }
+        }
+
+        // 获取横纵坐标数据
+        MainWindow::wave = getWavelength();
+        float* intensity = dataProcess(MainWindow::data.array, newWindow::smoothLevel, newWindow::deductflag, newWindow::nolinear, newWindow::waveshape);
+        QVector<double> x(2001), y(2001); //初始化向量x和y
+
+        if (newwindow2::Caready == 1)
+        {
+            for (int i=0; i<2001; ++i)
+            {
+                x[i] = *(MainWindow::wave + i);
+                y[i] = *(intensity + i);
+                y[i] = (y[i] - newwindow2::d[i]) * newwindow2::ca[i] / MainWindow::time_global;
+            }
+            ui->chartPlot->graph(0)->setData(x, y);
+            ui->chartPlot->yAxis->setLabel(u8"功率(μW)");
+            ui->chartPlot->graph(0)->setName(u8"标定后光谱数据");// 设置图例名称
+        }
+        else if (newWindow::changeflag == 1)
+        {
+            for (int i=0; i<2001; ++i)
+            {
+                x[i] = *(MainWindow::wave + i);
+                y[i] = *(intensity + i);
+            }
+            ui->chartPlot->graph(0)->setData(x, y);
+            ui->chartPlot->yAxis->setLabel(u8"强度(Counts)");
+            ui->chartPlot->graph(0)->setName(u8"处理后光谱数据");// 设置图例名称
+        }
+        else
+        {
+            for (int i=0; i<2001; ++i)
+            {
+                x[i] = *(MainWindow::wave + i);
+                y[i] = *(intensity + i);
+            }
+            ui->chartPlot->graph(0)->setData(x, y);
+            ui->chartPlot->yAxis->setLabel(u8"强度(Counts)");
+            ui->chartPlot->graph(0)->setName(u8"光谱数据");// 设置图例名称
+        }
+
+        // 绘图
+        ui->chartPlot->replot();
+        MainWindow::dataflag = 0; // 数据已使用，置零
     }
     else
     {
-        ui->logShow->append("---------------------");
-        QString log = "Nothing changed.";
-        ui->logShow->append(TEXT_COLOR_YELLOW("Warning ") + log);
+        QMessageBox::information(this,"还不能重绘图！","重绘图的前提是先有图");
     }
 
-    // 图表初始化
-    QCustomPlot *customPlot = ui->chartPlot;
-    ui->chartPlot->clearGraphs();   // 清除上一次数据
-    ui->chartPlot->clearItems();
-    ui->chartPlot->clearPlottables();
-    ui->chartPlot->clearFocus();
-    ui->chartPlot->clearMask();
-    customPlot->addGraph();
-
-    QPen pen;
-    pen.setWidth(4);//曲线的粗细
-    pen.setColor(Qt::blue);
-    customPlot->graph(0)->setPen(pen); // 曲线的颜色
-    customPlot->graph(0)->setBrush(QBrush(QColor(23, 129, 181, 40))); // 曲线与X轴包围区的颜色
-    ui->chartPlot->setBackground(QPixmap("./light.jpg"));
-    ui->chartPlot->setBackgroundScaledMode(Qt::IgnoreAspectRatio);
-
-    // 标题初始化
-    ui->labelTitle->setText(u8"处理后光谱图像");
-    /* 旧初始化 会产生重复标题渲染问题
-    customPlot->plotLayout()->insertRow(0);
-    QCPTextElement *H_title = new QCPTextElement(customPlot, "光谱测量", QFont("HarmonyOS Sans SC", 12, QFont::Bold));
-    customPlot->plotLayout()->addElement(0, 0, H_title);
-    */
-    // 为坐标轴设定，风格为 light
-    ui->chartPlot->xAxis->setLabel(u8"波长/nm");
-    ui->chartPlot->yAxis->setLabel(u8"强度(Counts)");
-    ui->chartPlot->xAxis->setLabelColor(Qt::black);
-    ui->chartPlot->yAxis->setLabelColor(Qt::black);
-    ui->chartPlot->xAxis->setBasePen(QPen(Qt::black));
-    ui->chartPlot->yAxis->setBasePen(QPen(Qt::black));
-    ui->chartPlot->xAxis->setTickPen(QPen(Qt::black));
-    ui->chartPlot->yAxis->setTickPen(QPen(Qt::black));
-    ui->chartPlot->xAxis->setTickLabelColor(Qt::black);
-    ui->chartPlot->yAxis->setTickLabelColor(Qt::black);
-    // 设置坐标轴的范围，以看到所有数据
-    ui->chartPlot->xAxis->setRange(300, 900);
-    ui->chartPlot->yAxis->setRange(0, 6000);
-    ui->chartPlot->legend->setVisible(true); // 显示图例
-    customPlot->legend->setBrush(QColor(255, 255, 255, 150)); // 图例透明
-    ui->chartPlot->legend->setFont(QFont("HarmonyOS Sans SC"));
-    customPlot->legend->setBorderPen(Qt::NoPen);// 隐藏边框
-    customPlot->graph(0)->setName(u8"原始数据");//设置名称
-
-    ui->chartPlot->graph(0)->rescaleAxes();
-
-    ui->chartPlot->setInteraction(QCP::iRangeDrag,true);// 拖拽曲线
-    ui->chartPlot->setInteraction(QCP::iRangeZoom,true);// 鼠标滚轮缩放
-    ui->chartPlot->setCursor(QCursor(Qt::PointingHandCursor));
-    ui->chartPlot->setInteraction( QCP::iSelectAxes,true);
-    onMouseWheel();
-
-    // 设备获取光谱数据
-    setIntegrationTime(MainWindow::time_global);
-    setAverage(MainWindow::average_global);
-    int flag = getSpectrum(MainWindow::time_global);
-    int count = 0;
-    while (flag != 1 )   // 等待数据获取完成
-    {
-        count++;
-        Sleep(500);
-        if (count>=10)  // 等待大于5s后跳出报错
-        {
-            break;
-        }
-    }
-
-    // 获取横纵坐标数据
-    MainWindow::wave = getWavelength();
-    float* intensity = dataProcess(MainWindow::data.array, newWindow::smoothLevel, newWindow::deductflag, newWindow::nolinear, newWindow::waveshape);
-    QVector<double> x(2001), y(2001); //初始化向量x和y
-
-    if (newwindow2::Caready == 1)
-    {
-        for (int i=0; i<2001; ++i)
-        {
-            x[i] = *(MainWindow::wave + i);
-            y[i] = *(intensity + i);
-            y[i] = (y[i] - newwindow2::d[i]) * newwindow2::ca[i] / MainWindow::time_global;
-        }
-        ui->chartPlot->graph(0)->setData(x, y);
-        ui->chartPlot->graph(0)->setName(u8"标定/处理后光谱数据");// 设置图例名称
-    }
-    else if (newWindow::changeflag == 1)
-    {
-        for (int i=0; i<2001; ++i)
-        {
-            x[i] = *(MainWindow::wave + i);
-            y[i] = *(intensity + i);
-        }
-        ui->chartPlot->graph(0)->setData(x, y);
-        ui->chartPlot->graph(0)->setName(u8"处理后光谱数据");// 设置图例名称
-    }
-    else
-    {
-        for (int i=0; i<2001; ++i)
-        {
-            x[i] = *(MainWindow::wave + i);
-            y[i] = *(intensity + i);
-        }
-        ui->chartPlot->graph(0)->setData(x, y);
-        ui->chartPlot->graph(0)->setName(u8"光谱数据");// 设置图例名称
-    }
-
-    // 绘图
-    ui->chartPlot->replot();
-    MainWindow::dataflag = 0; // 数据已使用，置零
 
     /* 基于旧 QChartView 的重绘图
     QChart *chart = new QChart();
@@ -1324,9 +1386,10 @@ void MainWindow::on_buttonSystemCheck_clicked()
         ui->logShow->append(u8"生成Ca前请先测量无光情况下的背景光谱 D0");
         ui->logShow->append(u8"若未测量 D0 将会使用预定常数进行计算");
         Sleep(1000);
-        QMessageBox::information(this, u8"预定数据", u8"生成Ca前请先测量无光情况下的背景光谱 D0\n若未测量 D0 将会使用预定常数进行计算");
+        QMessageBox::information(this, u8"系统矫正提示", u8"请分别测量标准灯光谱 B0\n背景噪声 D0 \n导入 Rs 或手动输入 Rs\n积分时间与主界面设置相同，默认为100ms");
         newwindow2 *configWindow = new newwindow2;
         configWindow->show();
+        link_flag = 1;
     }
     else    // 无设备连接，先清空日志，再进行提示
     {
@@ -1417,5 +1480,453 @@ bool MainWindow::on_buttonSaveGraphic_clicked()
          return ui->chartPlot->savePng(filename.append(".png"), ui->chartPlot->width(), ui->chartPlot->height() );
 
         }
+}
+
+int Again_count;
+// 连续测量
+void MainWindow::on_buttonAgain_clicked()
+{
+    Again_count = 0;
+    ui->buttonAgain->setText("暂停测量");
+    ui->buttonAgain->setIcon(QIcon("svgsource/pause-circle-fill.svg"));
+    ui->buttonAgain->setStyleSheet(
+                "QPushButton{"
+                "background-color:#fcc307;"
+                "color:white;"
+                "font: 9pt 'HarmonyOS Sans SC';"
+                "font-weight: bold;"
+                "}"
+                );
+    // 图表初始化
+    QCustomPlot *customPlot = ui->chartPlot;
+    ui->chartPlot->clearGraphs();   // 清除上一次数据
+    ui->chartPlot->clearItems();
+    ui->chartPlot->clearPlottables();
+    ui->chartPlot->clearFocus();
+    ui->chartPlot->clearMask();
+    customPlot->addGraph();
+    QPen pen;
+    pen.setWidth(4);//曲线的粗细
+    pen.setColor(Qt::darkYellow);
+    customPlot->graph(0)->setPen(pen); // 曲线的颜色
+    customPlot->graph(0)->setBrush(QBrush(QColor(251, 202, 23, 20))); // 曲线与X轴包围区的颜色
+    ui->chartPlot->setBackground(QPixmap("./light.jpg"));
+    ui->chartPlot->setBackgroundScaledMode(Qt::IgnoreAspectRatio);
+
+    // 标题初始化
+    ui->labelTitle->setText("连续绘图中...");
+    // 为坐标轴添加标签
+    ui->chartPlot->xAxis->setLabel(u8"波长/nm");
+    ui->chartPlot->yAxis->setLabel(u8"强度/Counts");
+    // 设置坐标轴的范围及颜色
+    ui->chartPlot->xAxis->setRange(300, 900);
+    ui->chartPlot->yAxis->setRange(0, 6000);
+    ui->chartPlot->xAxis->setLabelColor(Qt::black);
+    ui->chartPlot->yAxis->setLabelColor(Qt::black);
+    ui->chartPlot->xAxis->setBasePen(QPen(Qt::black));
+    ui->chartPlot->yAxis->setBasePen(QPen(Qt::black));
+    ui->chartPlot->xAxis->setTickPen(QPen(Qt::black));
+    ui->chartPlot->yAxis->setTickPen(QPen(Qt::black));
+    ui->chartPlot->xAxis->setTickLabelColor(Qt::black);
+    ui->chartPlot->yAxis->setTickLabelColor(Qt::black);
+
+    ui->chartPlot->graph(0)->rescaleAxes(); // 自适应坐标轴范围
+
+    ui->chartPlot->legend->setVisible(true); // 显示图例
+    customPlot->legend->setBrush(QColor(255, 255, 255, 150)); // 图例透明
+    ui->chartPlot->legend->setFont(QFont("HarmonyOS Sans SC"));
+    customPlot->legend->setBorderPen(Qt::NoPen);// 隐藏边框
+    customPlot->graph(0)->setName("实时光谱数据");//设置名称
+
+    ui->chartPlot->setInteraction(QCP::iRangeDrag,true);// 拖拽曲线
+    ui->chartPlot->setInteraction(QCP::iRangeZoom,true);// 鼠标滚轮缩放
+    ui->chartPlot->setCursor(QCursor(Qt::PointingHandCursor));// 鼠标更改为手型
+    ui->chartPlot->setInteraction( QCP::iSelectAxes,true);// 坐标轴可选
+
+    if(!_timer->isActive())
+    {
+        _timer->start(100);
+        int flag = getSpectrum(MainWindow::time_global);
+        Sleep(1000);
+        // 输出日志
+        QString log;
+        if (flag == 1)
+            {
+                flag = getSpectrumDataReadyFlag();
+                if (flag == SPECTRUMDATA_READY)
+                {
+                    log = u8"获取到光谱数据";
+                    ui->logShow->append("---------------------");
+
+                    ui->logShow->append(TEXT_COLOR_GREEN("Done ") + log);
+                    ui->logShow->append("连续绘图中--->");
+                    ui->logShow->append(" ");
+                }
+                else
+                {
+                    log = u8"数据并未准备完成";
+                    ui->logShow->append("---------------------");
+                    ui->logShow->append(TEXT_COLOR_RED("Failed ") + log);
+                    ui->logShow->append(" ");
+                }
+            }
+        else
+        {
+            log = u8"未获取到光谱";
+            ui->logShow->append("---------------------");
+            ui->logShow->append(TEXT_COLOR_RED("Failed ") + log);
+            ui->logShow->append("请检查连接或光源");
+            ui->logShow->append(" ");
+        }
+
+    }
+    else
+    {
+        _timer->stop();
+        ui->buttonAgain->setText("连续测量");
+        ui->buttonAgain->setIcon(QIcon("svgsource/play-circle-fill.svg"));
+        ui->buttonAgain->setStyleSheet(
+                    "QPushButton{"
+                    "background-color:#e1e1e1;"//设置按钮背景色
+                    "color:black;"//设置按钮字体颜色
+                    "font: 9pt 'HarmonyOS Sans SC';"
+                    "font-weight: bold;"
+                                         "}"
+                    );
+        ui->logShow->append(u8"测量已暂停~");
+    }
+
+
+
+}
+
+
+// 实时光谱绘图函数
+void MainWindow::AgainSpectrum()
+{
+    // 设备获取光谱数据
+    setIntegrationTime(MainWindow::time_global);
+    setAverage(MainWindow::average_global);
+    int flag = getSpectrum(MainWindow::time_global);
+
+    if (flag == 1 )
+    {
+        Again_count++;
+    }
+
+    Sleep(1000);    // wait 1 seconds
+
+    // 获取横纵坐标数据
+    MainWindow::wave = getWavelength();
+    MainWindow::data = ReadSpectrum();
+    QVector<double> x(2000), y(2000); //初始化向量x和y
+    if (newwindow2::Caready == 1)
+    {
+        for (int i=0; i<1860; ++i)
+        {
+            x[i] = *(MainWindow::wave + i);
+            y[i] = *(MainWindow::data.array + i);
+            y[i] = (y[i] - newwindow2::d[i]) * newwindow2::ca[i] / MainWindow::time_global;
+        }
+        ui->chartPlot->graph(0)->setData(x, y);
+    }
+    else
+    {
+        for (int i=0; i<1860; ++i)
+        {
+            x[i] = *(MainWindow::wave + i);
+            y[i] = *(MainWindow::data.array + i);
+        }
+        ui->chartPlot->graph(0)->setData(x, y);
+    }
+
+    // 绘图
+    ui->chartPlot->replot();
+    ui->chartPlot->rescaleAxes();
+    MainWindow::dataflag = 1; // 有数据，设定标志位为1
+}
+
+// 添加矫正参数
+void MainWindow::on_actioninput_Ca_triggered()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,tr("导入矫正参数文件"),"",tr("TXT(*.txt)"));
+    std::string str = fileName.toStdString();
+    const char *filename = str.c_str();
+    std::ifstream in(filename, std::ios::in);
+    if (!in.is_open())
+    {
+        QMessageBox::information(this,"文件不存在","还没有矫正参数保存");
+    }
+    else
+    {
+        //将数据文件数据存入数组
+        int i = 0;
+        double notuse;
+        while (!in.eof() && i < 2000)
+        {
+            in >> notuse >> newwindow2::ca[i];
+            i++;
+        }
+        newwindow2::Caready = 1;
+        QMessageBox::information(this,"Success","矫正参数Ca(λ)已添加");
+    }
+
+}
+
+// 取消矫正参数
+void MainWindow::on_actionRemove_Ca_triggered()
+{
+    newwindow2::Caready = 0;
+    QMessageBox::information(this,"Success","已禁用矫正参数，参数可再次启用，或重新标定覆盖");
+}
+
+
+QVector<double> peak_point(2000);
+int countpeak = 0;
+// 查找波峰
+void MainWindow::on_actionFind_Peaks_triggered()
+{
+    std::vector<int> a(2000);
+    for (int i = 0; i<1860; ++i)
+    {
+        a[i] = *(MainWindow::data.array + i);
+    }
+
+    auto peak_array = findPeaks(a);
+
+    for_each(peak_array.begin(),peak_array.end(),[](int x){
+        peak_point[++countpeak] = x;
+    });
+
+    // 绘图
+    ui->chartPlot->addGraph();
+    ui->chartPlot->graph(0)->setPen(QPen(Qt::blue)); // 曲线的颜色
+    ui->chartPlot->graph(0)->setBrush(QBrush(QColor(0, 0, 255, 20))); // 曲线与X轴包围区的颜色
+
+    ui->chartPlot->addGraph();
+    ui->chartPlot->graph(1)->setPen(QPen(Qt::red)); // 查找点颜色
+
+    // 生成模拟数据点 (x-y0 为光谱, x-y1为查找点):
+    QVector<double> x(1860), y0(1860), y1(1860);
+    for (int i=0; i<1860; ++i)
+    {
+       x[i] = *(MainWindow::wave + i);
+       y0[i] = *(MainWindow::data.array + i);
+       //y1[i] = peak_point[i];
+    }
+
+    // 把已存在的数据填充进graph的数据区
+    ui->chartPlot->graph(0)->setData(x, y0);
+    ui->chartPlot->graph(1)->setData(x, y1);
+    //自动调整XY轴的范围，以便显示出graph(0)中所有的点（下面会单独讲到这个函数）
+    ui->chartPlot->graph(0)->rescaleAxes();
+    //自动调整XY轴的范围，以便显示出graph(1)中所有的点
+
+    ui->chartPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
+    // 立即刷新图像
+    ui->chartPlot->replot();
+
+}
+
+// 设定查找波峰时的距离参数
+void MainWindow::on_actionSet_Find_Distance_triggered()
+{
+    peakset *configWindow = new peakset;
+    configWindow->show();
+}
+
+
+// 绘制强度/时间的图
+void MainWindow::on_actionCounts_t_triggered()
+{
+    // 图表初始化
+    QCustomPlot *customPlot = ui->chartPlot;
+    ui->chartPlot->clearGraphs();   // 清除上一次数据
+    ui->chartPlot->clearItems();
+    ui->chartPlot->clearPlottables();
+    ui->chartPlot->clearFocus();
+    ui->chartPlot->clearMask();
+    customPlot->addGraph();
+    QPen pen;
+    pen.setWidth(4);//曲线的粗细
+    pen.setColor(Qt::darkRed);
+    customPlot->graph(0)->setPen(pen); // 曲线的颜色
+    customPlot->graph(0)->setBrush(QBrush(QColor(116, 120, 122, 20))); // 曲线与X轴包围区的颜色
+    ui->chartPlot->setBackground(QPixmap("./light.jpg"));
+    ui->chartPlot->setBackgroundScaledMode(Qt::IgnoreAspectRatio);
+
+    // 标题初始化
+    ui->labelTitle->setText("波长-强度/时间 光谱图像绘制");
+    // 为坐标轴添加标签
+    ui->chartPlot->xAxis->setLabel(u8"波长(nm)");
+    // 设置坐标轴的范围及颜色
+    ui->chartPlot->xAxis->setRange(300, 900);
+    ui->chartPlot->yAxis->setRange(0,60000);
+    ui->chartPlot->xAxis->setLabelColor(Qt::black);
+    ui->chartPlot->yAxis->setLabelColor(Qt::black);
+    ui->chartPlot->xAxis->setBasePen(QPen(Qt::black));
+    ui->chartPlot->yAxis->setBasePen(QPen(Qt::black));
+    ui->chartPlot->xAxis->setTickPen(QPen(Qt::black));
+    ui->chartPlot->yAxis->setTickPen(QPen(Qt::black));
+    ui->chartPlot->xAxis->setTickLabelColor(Qt::black);
+    ui->chartPlot->yAxis->setTickLabelColor(Qt::black);
+
+    ui->chartPlot->legend->setVisible(true); // 显示图例
+    customPlot->legend->setBrush(QColor(255, 255, 255, 150)); // 图例透明
+    ui->chartPlot->legend->setFont(QFont("HarmonyOS Sans SC"));
+    customPlot->legend->setBorderPen(Qt::NoPen);// 隐藏边框
+    customPlot->graph(0)->setName("光强/时间 曲线");//设置名称
+
+    ui->chartPlot->setInteraction(QCP::iRangeDrag,true);// 拖拽曲线
+    ui->chartPlot->setInteraction(QCP::iRangeZoom,true);// 鼠标滚轮缩放
+    ui->chartPlot->setCursor(QCursor(Qt::PointingHandCursor));// 鼠标更改为手型
+    ui->chartPlot->setInteraction( QCP::iSelectAxes,true);// 坐标轴可选
+    onMouseWheel();
+
+    // 设备获取光谱数据
+    setIntegrationTime(MainWindow::time_global);
+    setAverage(MainWindow::average_global);
+    int flag = getSpectrum(MainWindow::time_global);
+    int count = 0;
+    while (flag != 1 )   // 等待数据获取完成
+    {
+        count++;
+        Sleep(500);
+        if (count>=10)  // 等待大于5s后跳出报错
+        {
+            break;
+        }
+    }
+    Sleep(1000);    // wait 1 seconds
+
+    // 输出日志
+    QString log;
+    if (flag == 1)
+        {
+            flag = getSpectrumDataReadyFlag();
+            if (flag == SPECTRUMDATA_READY)
+            {
+                log = u8"获取到光谱数据";
+                ui->logShow->append("---------------------");
+
+                ui->logShow->append(TEXT_COLOR_GREEN("Done ") + log);
+                ui->logShow->append("绘图中->");
+                ui->logShow->append(" ");
+            }
+            else
+            {
+                log = u8"数据并未准备完成";
+                ui->logShow->append("---------------------");
+                ui->logShow->append(TEXT_COLOR_RED("Failed ") + log);
+                ui->logShow->append(" ");
+            }
+        }
+    else
+    {
+        log = u8"未获取到光谱";
+        ui->logShow->append("---------------------");
+        ui->logShow->append(TEXT_COLOR_RED("Failed ") + log);
+        ui->logShow->append("请检查连接或光源");
+        ui->logShow->append(" ");
+    }
+
+    // 获取横纵坐标数据
+    MainWindow::wave = getWavelength();
+    MainWindow::data = ReadSpectrum();
+    QVector<double> x(2000), y(2000); //初始化向量x和y
+    if (newwindow2::Caready == 1)
+    {
+        for (int i=0; i<1860; ++i)
+        {
+            x[i] = *(MainWindow::wave + i);
+            y[i] = *(MainWindow::data.array + i);
+            y[i] = (y[i] - newwindow2::d[i]) * newwindow2::ca[i] / MainWindow::time_global;
+        }
+        ui->chartPlot->yAxis->setLabel(u8"功率(μW)");
+        ui->chartPlot->graph(0)->setData(x, y);
+        ui->chartPlot->graph(0)->setName(u8"光谱数据/标定后");// 设置图例名称
+    }
+    else
+    {
+        for (int i=0; i<1860; ++i)
+        {
+            x[i] = *(MainWindow::wave + i);
+            y[i] = *(MainWindow::data.array + i)/MainWindow::time_global;
+        }
+        ui->chartPlot->yAxis->setLabel(u8"强度(Count/ms)");
+        ui->chartPlot->graph(0)->setData(x, y);
+        ui->chartPlot->graph(0)->setName(u8"光谱数据");// 设置图例名称
+    }
+    // 绘图
+    ui->chartPlot->replot();
+    ui->chartPlot->graph(0)->rescaleAxes(); // 自适应坐标轴范围
+    MainWindow::dataflag = 1; // 有数据，设定标志位为1
+}
+
+// 导入绘制第三方图
+void MainWindow::on_actionThird_party_Graphic_triggered()
+{
+    QCustomPlot *customPlot = ui->chartPlot;
+    customPlot->addGraph();
+    QPen pen;
+    pen.setWidth(4);//曲线的粗细
+    pen.setColor(Qt::lightGray);
+    customPlot->graph(0)->setPen(pen); // 曲线的颜色
+    customPlot->graph(0)->setBrush(QBrush(QColor(116, 120, 122, 20))); // 曲线与X轴包围区的颜色
+    ui->chartPlot->setBackground(QPixmap("./light.jpg"));
+    ui->chartPlot->setBackgroundScaledMode(Qt::IgnoreAspectRatio);
+
+    // 标题初始化
+    ui->labelTitle->setText("导入图像绘图");
+    // 为坐标轴添加标签
+    ui->chartPlot->xAxis->setLabel(u8"波长(nm)");
+    ui->chartPlot->yAxis->setLabel(u8"强度(Counts)");
+    // 设置坐标轴的范围及颜色
+    ui->chartPlot->xAxis->setRange(300, 900);
+
+    ui->chartPlot->yAxis->setRange(0,100);
+    ui->chartPlot->xAxis->setLabelColor(Qt::black);
+    ui->chartPlot->yAxis->setLabelColor(Qt::black);
+    ui->chartPlot->xAxis->setBasePen(QPen(Qt::black));
+    ui->chartPlot->yAxis->setBasePen(QPen(Qt::black));
+    ui->chartPlot->xAxis->setTickPen(QPen(Qt::black));
+    ui->chartPlot->yAxis->setTickPen(QPen(Qt::black));
+    ui->chartPlot->xAxis->setTickLabelColor(Qt::black);
+    ui->chartPlot->yAxis->setTickLabelColor(Qt::black);
+
+    ui->chartPlot->legend->setVisible(true); // 显示图例
+    customPlot->legend->setBrush(QColor(255, 255, 255, 150)); // 图例透明
+    ui->chartPlot->legend->setFont(QFont("HarmonyOS Sans SC"));
+    customPlot->legend->setBorderPen(Qt::NoPen);// 隐藏边框
+    customPlot->graph(0)->setName("原始数据");//设置名称
+
+    ui->chartPlot->setInteraction(QCP::iRangeDrag,true);// 拖拽曲线
+    ui->chartPlot->setInteraction(QCP::iRangeZoom,true);// 鼠标滚轮缩放
+    ui->chartPlot->setCursor(QCursor(Qt::PointingHandCursor));// 鼠标更改为手型
+    ui->chartPlot->setInteraction( QCP::iSelectAxes,true);// 坐标轴可选
+
+    QString fileName = QFileDialog::getOpenFileName(this,tr("导入数据文件"),"",tr("TXT(*.txt)"));
+    std::string str = fileName.toStdString();
+    const char *filename = str.c_str();
+    std::ifstream in(filename, std::ios::in);
+    if (!in.is_open())
+    {
+        QMessageBox::information(this,"文件不存在","没有导入文件~");
+    }
+    else
+    {
+        //将数据文件数据存入数组
+        int i = 0;
+        QVector<double> x(4000), y(4000);
+        while (!in.eof() && i < 4000)
+        {
+            in >> x[i] >> y[i] ;
+            i++;
+        }
+        ui->chartPlot->graph(0)->setData(x, y);
+    }
+    ui->chartPlot->replot();
+    ui->chartPlot->rescaleAxes();
+
 }
 

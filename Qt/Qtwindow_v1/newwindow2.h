@@ -37,8 +37,15 @@ private slots:
 
     void on_buttonInputStandard_clicked();
 
+
+
+    void on_buttonTimeReset_clicked();
+
+    void on_pushButton_2_clicked();
+
 private:
     Ui::newwindow2 *ui;
+    QAction *fileOpenAction; //创建一个QAction指针，打开文件动作
 };
 
 #endif // NEWWINDOW2_H

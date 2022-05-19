@@ -56,7 +56,9 @@ public slots:
 
     void on_buttonSpectrum_clicked();
 
-    // void mouseMove1(QMouseEvent *e);
+    //void mouseMove1(QMouseEvent *e);
+
+
 
 private slots:
 
@@ -89,6 +91,23 @@ private slots:
 
     bool on_buttonSaveGraphic_clicked();
 
+    void on_buttonAgain_clicked();
+
+    void AgainSpectrum();
+
+
+    void on_actioninput_Ca_triggered();
+
+    void on_actionRemove_Ca_triggered();
+
+    void on_actionFind_Peaks_triggered();
+
+    void on_actionSet_Find_Distance_triggered();
+
+    void on_actionCounts_t_triggered();
+
+    void on_actionThird_party_Graphic_triggered();
+
 private:
     // 通过 ui-> 访问界面相关代码
     Ui::MainWindow *ui;
@@ -98,20 +117,12 @@ private:
     QLineSeries *curSeries;
     QValueAxis *curAxis;
 
-   /* 游标相关
-    QCPItemTracer *tracer;
-    QCPItemText *tracerLabel;
-    */
+    QTimer *_timer;
+
+//    QCustomPlot *customPlot;
+//    QCPItemTracer *tracer;
+//    QCPItemText *tracerLabel;
 
 
-
-/*    QLineEdit* setTime;
-    QLineEdit* setAverage;
-    QPushButton* buttonSpetrum;
-    QPushButton* buttonLink;
-    QPushButton* buttonStop;
-    QPushButton* buttonInfo;
-    QPushButton* buttonVice;
-*/
 };
 #endif // MAINWINDOW_H

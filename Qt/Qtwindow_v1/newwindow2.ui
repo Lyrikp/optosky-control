@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>709</width>
+    <width>1200</width>
     <height>536</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1200</width>
+    <height>0</height>
+   </size>
   </property>
   <property name="font">
    <font>
@@ -24,35 +30,36 @@
     <normaloff>../../svgsource/building-3-line.svg</normaloff>../../svgsource/building-3-line.svg</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="4" column="2">
-    <widget class="QLineEdit" name="Spectrum3"/>
-   </item>
-   <item row="3" column="1">
-    <widget class="QLineEdit" name="Wave2"/>
-   </item>
-   <item row="9" column="2">
-    <widget class="QLineEdit" name="Spectrum8"/>
-   </item>
-   <item row="1" column="5">
-    <spacer name="horizontalSpacer_5">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
+   <item row="11" column="2">
+    <widget class="QLineEdit" name="Spectrum10">
+     <property name="maximumSize">
       <size>
-       <width>40</width>
-       <height>20</height>
+       <width>120</width>
+       <height>40</height>
       </size>
      </property>
-    </spacer>
+    </widget>
    </item>
-   <item row="5" column="2">
-    <widget class="QLineEdit" name="Spectrum4"/>
+   <item row="10" column="1">
+    <widget class="QLineEdit" name="Wave9">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>40</height>
+      </size>
+     </property>
+    </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label">
+   <item row="1" column="2">
+    <widget class="QLabel" name="label_3">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>60</height>
+      </size>
+     </property>
      <property name="text">
-      <string>序号</string>
+      <string>光强</string>
      </property>
     </widget>
    </item>
@@ -69,17 +76,33 @@
      </property>
     </spacer>
    </item>
-   <item row="11" column="1">
-    <widget class="QLineEdit" name="Wave10"/>
-   </item>
-   <item row="1" column="8">
-    <widget class="QPushButton" name="buttonCaOutput">
-     <property name="text">
-      <string>生成Ca</string>
+   <item row="8" column="1">
+    <widget class="QLineEdit" name="Wave7">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>40</height>
+      </size>
      </property>
-     <property name="icon">
-      <iconset>
-       <normaloff>../../svgsource/file-transfer-line.svg</normaloff>../../svgsource/file-transfer-line.svg</iconset>
+    </widget>
+   </item>
+   <item row="1" column="5">
+    <spacer name="horizontalSpacer_5">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="label_8">
+     <property name="text">
+      <string>5</string>
      </property>
     </widget>
    </item>
@@ -90,27 +113,41 @@
      </property>
     </widget>
    </item>
-   <item row="8" column="0">
-    <widget class="QLabel" name="label_10">
-     <property name="text">
-      <string>7</string>
+   <item row="3" column="2">
+    <widget class="QLineEdit" name="Spectrum2">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>40</height>
+      </size>
      </property>
     </widget>
    </item>
-   <item row="7" column="2">
-    <widget class="QLineEdit" name="Spectrum6"/>
-   </item>
-   <item row="7" column="0">
-    <widget class="QLabel" name="label_9">
+   <item row="9" column="0">
+    <widget class="QLabel" name="label_11">
      <property name="text">
-      <string>6</string>
+      <string>8</string>
      </property>
     </widget>
    </item>
-   <item row="5" column="0">
-    <widget class="QLabel" name="label_7">
+   <item row="1" column="7">
+    <widget class="QPushButton" name="buttonDark">
      <property name="text">
-      <string>4</string>
+      <string>暗环境数据D0</string>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>../../svgsource/moon-cloudy-fill.svg</normaloff>../../svgsource/moon-cloudy-fill.svg</iconset>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="2">
+    <widget class="QLineEdit" name="Spectrum7">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>40</height>
+      </size>
      </property>
     </widget>
    </item>
@@ -132,10 +169,23 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="0">
-    <widget class="QLabel" name="label_6">
-     <property name="text">
-      <string>3</string>
+   <item row="11" column="1">
+    <widget class="QLineEdit" name="Wave10">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>40</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLineEdit" name="Wave2">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>40</height>
+      </size>
      </property>
     </widget>
    </item>
@@ -151,6 +201,244 @@
       </size>
      </property>
     </spacer>
+   </item>
+   <item row="11" column="6">
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="11" column="4">
+    <spacer name="horizontalSpacer_3">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="label_7">
+     <property name="text">
+      <string>4</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QLineEdit" name="Wave4">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>40</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="2">
+    <widget class="QLineEdit" name="Spectrum8">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>40</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="2">
+    <widget class="QLineEdit" name="Spectrum4">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>40</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="2">
+    <widget class="QLineEdit" name="Spectrum1">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>40</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="0">
+    <widget class="QLabel" name="label_10">
+     <property name="text">
+      <string>7</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="0">
+    <widget class="QLabel" name="label_9">
+     <property name="text">
+      <string>6</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="2">
+    <widget class="QLineEdit" name="Spectrum3">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>40</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="label_6">
+     <property name="text">
+      <string>3</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLabel" name="label_2">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>60</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>波长</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="3">
+    <spacer name="horizontalSpacer_7">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="11" column="7">
+    <widget class="QPushButton" name="AcceptData">
+     <property name="text">
+      <string>确定</string>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>../../svgsource/check-line.svg</normaloff>../../svgsource/check-line.svg</iconset>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="2">
+    <widget class="QLineEdit" name="Spectrum6">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>40</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="5">
+    <spacer name="horizontalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="6" column="2">
+    <widget class="QLineEdit" name="Spectrum5">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>40</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="3">
+    <spacer name="horizontalSpacer_8">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="7" column="1">
+    <widget class="QLineEdit" name="Wave6">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>40</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="8">
+    <widget class="QPushButton" name="CancelData">
+     <property name="text">
+      <string>取消</string>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>../../svgsource/close-line.svg</normaloff>../../svgsource/close-line.svg</iconset>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QLineEdit" name="Wave5">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>40</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="2">
+    <widget class="QLineEdit" name="Spectrum9">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>40</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QLineEdit" name="Wave3">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>40</height>
+      </size>
+     </property>
+    </widget>
    </item>
    <item row="0" column="0" colspan="2">
     <widget class="QPushButton" name="pushButton">
@@ -169,46 +457,22 @@
      </property>
     </widget>
    </item>
-   <item row="10" column="1">
-    <widget class="QLineEdit" name="Wave9"/>
-   </item>
-   <item row="9" column="0">
-    <widget class="QLabel" name="label_11">
-     <property name="text">
-      <string>8</string>
+   <item row="9" column="1">
+    <widget class="QLineEdit" name="Wave8">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>40</height>
+      </size>
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
-    <widget class="QLineEdit" name="Wave3"/>
-   </item>
-   <item row="11" column="4">
-    <spacer name="horizontalSpacer_3">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+   <item row="2" column="3" rowspan="9" colspan="6">
+    <widget class="QCustomPlot" name="chartPlotall" native="true">
+     <property name="autoFillBackground">
+      <bool>true</bool>
      </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>40</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="2" column="2">
-    <widget class="QLineEdit" name="Spectrum1"/>
-   </item>
-   <item row="2" column="1">
-    <widget class="QLineEdit" name="Wave1"/>
-   </item>
-   <item row="8" column="1">
-    <widget class="QLineEdit" name="Wave7"/>
-   </item>
-   <item row="6" column="1">
-    <widget class="QLineEdit" name="Wave5"/>
-   </item>
-   <item row="9" column="1">
-    <widget class="QLineEdit" name="Wave8"/>
+    </widget>
    </item>
    <item row="10" column="0">
     <widget class="QLabel" name="label_12">
@@ -217,11 +481,22 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="2">
-    <widget class="QLineEdit" name="Spectrum2"/>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>序号</string>
+     </property>
+    </widget>
    </item>
-   <item row="6" column="2">
-    <widget class="QLineEdit" name="Spectrum5"/>
+   <item row="2" column="1">
+    <widget class="QLineEdit" name="Wave1">
+     <property name="maximumSize">
+      <size>
+       <width>120</width>
+       <height>40</height>
+      </size>
+     </property>
+    </widget>
    </item>
    <item row="2" column="0">
     <widget class="QLabel" name="label_4">
@@ -230,89 +505,7 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="1">
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>波长</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="7">
-    <widget class="QPushButton" name="buttonDark">
-     <property name="text">
-      <string>暗环境数据D0</string>
-     </property>
-     <property name="icon">
-      <iconset>
-       <normaloff>../../svgsource/moon-cloudy-fill.svg</normaloff>../../svgsource/moon-cloudy-fill.svg</iconset>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="1">
-    <widget class="QLineEdit" name="Wave4"/>
-   </item>
-   <item row="11" column="8">
-    <widget class="QPushButton" name="CancelData">
-     <property name="text">
-      <string>取消</string>
-     </property>
-     <property name="icon">
-      <iconset>
-       <normaloff>../../svgsource/close-line.svg</normaloff>../../svgsource/close-line.svg</iconset>
-     </property>
-    </widget>
-   </item>
-   <item row="10" column="2">
-    <widget class="QLineEdit" name="Spectrum9"/>
-   </item>
-   <item row="8" column="2">
-    <widget class="QLineEdit" name="Spectrum7"/>
-   </item>
-   <item row="1" column="2">
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>光强</string>
-     </property>
-    </widget>
-   </item>
-   <item row="11" column="7">
-    <widget class="QPushButton" name="AcceptData">
-     <property name="text">
-      <string>确定</string>
-     </property>
-     <property name="icon">
-      <iconset>
-       <normaloff>../../svgsource/check-line.svg</normaloff>../../svgsource/check-line.svg</iconset>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="1">
-    <widget class="QLineEdit" name="Wave6"/>
-   </item>
-   <item row="6" column="0">
-    <widget class="QLabel" name="label_8">
-     <property name="text">
-      <string>5</string>
-     </property>
-    </widget>
-   </item>
-   <item row="11" column="2">
-    <widget class="QLineEdit" name="Spectrum10"/>
-   </item>
-   <item row="11" column="6">
-    <spacer name="horizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>40</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="0" column="8">
+   <item row="0" column="2">
     <widget class="QPushButton" name="buttonInputStandard">
      <property name="text">
       <string>导入参数</string>
@@ -323,51 +516,46 @@
      </property>
     </widget>
    </item>
-   <item row="11" column="5">
-    <spacer name="horizontalSpacer_2">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>40</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
+   <item row="0" column="4">
+    <widget class="QLineEdit" name="timeReset"/>
    </item>
-   <item row="1" column="3">
-    <spacer name="horizontalSpacer_7">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+   <item row="0" column="3">
+    <widget class="QPushButton" name="buttonTimeReset">
+     <property name="text">
+      <string>重设积分时间(ms)</string>
      </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>40</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="2" column="3" rowspan="9" colspan="6">
-    <widget class="QCustomPlot" name="chartPlotall" native="true">
-     <property name="autoFillBackground">
-      <bool>true</bool>
+     <property name="icon">
+      <iconset>
+       <normaloff>svgsource/timer-line.svg</normaloff>svgsource/timer-line.svg</iconset>
      </property>
     </widget>
    </item>
-   <item row="11" column="3">
-    <spacer name="horizontalSpacer_8">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
+   <item row="0" column="8" rowspan="2">
+    <widget class="QPushButton" name="buttonCaOutput">
+     <property name="minimumSize">
       <size>
-       <width>40</width>
-       <height>20</height>
+       <width>0</width>
+       <height>115</height>
       </size>
      </property>
-    </spacer>
+     <property name="text">
+      <string>生成Ca</string>
+     </property>
+     <property name="icon">
+      <iconset>
+       <normaloff>../../svgsource/file-transfer-line.svg</normaloff>../../svgsource/file-transfer-line.svg</iconset>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="5">
+    <widget class="QPushButton" name="pushButton_2">
+     <property name="text">
+      <string/>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

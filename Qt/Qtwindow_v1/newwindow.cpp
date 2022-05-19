@@ -8,6 +8,7 @@
 #include <windows.h>
 #include <iostream>
 #include <fstream>
+#include <math.h>
 
 #pragma execution_character_set("utf-8")
 

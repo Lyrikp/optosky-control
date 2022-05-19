@@ -10,6 +10,8 @@
 
 ## 更新日志
 
+> `2020.05.13` 增加导航栏内容
+>
 > `2020.05.07` 程序封装，全部打包到一个 exe 当中了，可以直接运行
 >
 > `2020.05.05` 增加了未链接时的猫猫睡觉图片，重新绘制了普通、暗环境、重绘图、标定等的绘图样式
@@ -41,35 +43,66 @@
    1. 【链接设备】
    2. 查看【设备信息】->获知设备可以设置的积分时间范围
    3. 设定【积分时间】与【平均积分次数】，【测量】按键激活，点击后测量并绘图
-   4. 在窗口顶部栏的【数据处理】-【Data Process】，弹出数据处理窗口，选择需要处理的行为后点击【√】保存
-   5. 在主窗口点击【绘图】绘制出处理后数据的图像
-   6. 点击【导出数据】导出处理后数据，点击顶部栏【数据处理】-【Original Data】导出原始数据。在处理前导出数据导出的也为原始数据。
+   4. 点击左侧按键中【导出数据】以存储数据，点击右上角【保存图片】以选择图像保存
+   5. 在导航栏中【校正参数】-【input ca】选择导入功率校正参数
+   6. 在导航栏中【校正参数】-【input environmental data】配合光谱仪测量当前的环境噪声
 
 
 
 ## 界面预览
 
-暂无
+<p align="center">
+  <img alt="待机界面" src="/Pic_example/example1.png" width="400">
+</p>
 
-## TODO
+<p align="center">
+  <img alt="待机界面" src="/Pic_example/example2.png" width="400">
+</p>
+
+<p align="center">
+  <img alt="待机界面" src="/Pic_example/example3.png" width="400">
+</p>
+
+<p align="center">
+  <img alt="待机界面" src="/Pic_example/example4.png" width="400">
+</p>
+
+<p align="center">
+  <img alt="待机界面" src="/Pic_example/example5.png" width="400">
+</p>
+
+<p align="center">
+  <img alt="待机界面" src="/Pic_example/example6.png" width="400">
+</p>
+
+<p align="center">
+  <img alt="待机界面" src="/Pic_example/example7.png" width="400">
+</p>
+
+<p align="center">
+  <img alt="待机界面" src="/Pic_example/example8.png" width="400">
+</p>
+
+## TODO/已完成功能
 
 - [x] 基本设备驱动连接
 - [x] `C#` 基础模板
 - [x] `C++` 基础模板
 - [x] `C++` 顺序流程终端控制程序
-- [ ] `Qt` 交互界面
-  - [x] 基本链接与关闭
-  - [x] 光谱仪基础信息显示
-  - [x] 积分时间与平均积分次数设定
-  - [x] 光谱测量与绘制
-  - [x] 暗环境光谱测量
-  - [x] 操作日志显示
-  - [x] 数据处理
-  - [x] 导出光谱数据文件
-  - [x] 绘图插件优化
-  - [ ] 光谱仪标定
-- [ ] 程序封装集成
-- [ ] Python 数据处理重写
+- [x] 基本链接与关闭
+- [x] 光谱仪基础信息显示
+- [x] 积分时间与平均积分次数设定
+- [x] 光谱测量与绘制
+- [x] 暗环境光谱测量
+- [x] 操作日志显示
+- [x] 数据处理
+- [x] 导出光谱数据文件
+- [x] 绘图插件优化
+- [x] 光谱仪标定
+- [x] 程序封装集成
+- [ ] 背景噪声导航栏测量
+- [ ] 加入测试好的参数
+- [ ] 打包文件中，图标与图片文件修复
 
 
 
